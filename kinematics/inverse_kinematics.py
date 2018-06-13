@@ -23,13 +23,13 @@ class InverseKinematicsAgent(ForwardKinematicsAgent):
 
         :param str effector_name: name of end effector, e.g. LLeg, RLeg
         :param transform: 4x4 transform matrix
-        :return: list of joint angles
+        :return: dict of joint angles
         '''       
         start = [0] * len(self.chains[effector_name])
 
-        #print('Opt...', end='')
+        print 'Opt...',
         optimization = fmin(self.err_func, start, args=(effector_name, transform))
-        #print('done!')
+        print 'done!'
 
         joint_angles = dict(zip(self.chains[effector_name], optimization))
         return joint_angles
@@ -38,11 +38,13 @@ class InverseKinematicsAgent(ForwardKinematicsAgent):
         '''calculate the error of effector_name
         used in fmin, should be 0 for perfect match
         '''
+        
         # devide into rotations and translations of current state
         Ts = self.forward_kinematics_for_inverse(effector_name, thetas)
         rot_trans_is = self.from_trans(Ts)
         # do same for target
         rot_trans_target = self.from_trans(target)
+        
         # calculate and weight error
         error = rot_trans_target - rot_trans_is
         weight_error = numpy.sum(error[:2]) + 10*numpy.sum(error[3:])
@@ -64,6 +66,7 @@ class InverseKinematicsAgent(ForwardKinematicsAgent):
         '''
         # YOUR CODE HERE
         # get angles
+        # using a dict to make it easier
         angles = self.inverse_kinematics(effector_name, transform)
         
         name = list()
@@ -77,17 +80,17 @@ class InverseKinematicsAgent(ForwardKinematicsAgent):
             # use two times for a smooth movement
                         
             if chain == effector_name:
-                for i, joint in enumerate(self.chains[chain]):
+                for joint in self.chains[chain]:
                     name.append(joint)
                     keys.append([[        0, [3, -1, 0.], [3, 1, 0.]],
-                                 [angles[i], [3, -1, 0.], [3, 1, 0.]]])
-                    times.append([5.0, 10.0])
+                                 [angles[joint], [3, -1, 0.], [3, 1, 0.]]])
+                    times.append([5.0, 8.0])
             else:
                 for joint in self.chains[chain]:
                     name.append(joint)
                     keys.append([[0, [3, -1, 0.], [3, 1, 0.]],
                                  [0, [3, -1, 0.], [3, 1, 0.]]])
-                    times.append([5.0, 10.0])
+                    times.append([5.0, 8.0])
 
 
         self.keyframes = (name, times, keys)  # the result joint angles have to fill in
