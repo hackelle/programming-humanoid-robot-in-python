@@ -109,7 +109,7 @@ class ForwardKinematicsAgent(AngleInterpolationAgent):
         T = identity(4)
         # YOUR CODE HERE
         
-        print("Current joint: ", joint_name)
+        #print("Current joint: ", joint_name)
         
         j_cos = cos(joint_angle)
         j_sin = sin(joint_angle)
@@ -155,7 +155,7 @@ class ForwardKinematicsAgent(AngleInterpolationAgent):
         T[1][3] = self.offsets[joint_name][1]
         T[2][3] = self.offsets[joint_name][2]
 
-        print(np.round(T,2))
+        #print(np.round(T,2))
 
         return T
 
