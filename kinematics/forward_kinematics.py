@@ -172,7 +172,7 @@ class ForwardKinematicsAgent(AngleInterpolationAgent):
                 # YOUR CODE HERE
                 # "chain" all transformations by dot-multiplying them
                 T = dot(T,Tl)
-                self.transforms[joint] = T
+                self.transforms[joint] = T.copy()
 
 if __name__ == '__main__':
     agent = ForwardKinematicsAgent()
