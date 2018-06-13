@@ -95,7 +95,7 @@ class InverseKinematicsAgent(ForwardKinematicsAgent):
 
         self.keyframes = (name, times, keys)  # the result joint angles have to fill in
         
-    def from_trans(self, transform):
+    def from_trans(self, T):
         '''get x,y,z coordinates and rotations around x,y,z from a transformation
         '''
         x, y, z = T[0, -1], T[1, -1], T[2, -1]
