@@ -38,6 +38,7 @@ class AngleInterpolationAgent(PIDAgent):
         super(AngleInterpolationAgent, self).__init__(simspark_ip, simspark_port, teamname, player_id, sync_mode)
         self.keyframes = ([], [], [])
         self.init_time = None
+        self.initial_angles = {}
 
     def think(self, perception):
         target_joints = self.angle_interpolation(self.keyframes, perception)
@@ -45,11 +46,13 @@ class AngleInterpolationAgent(PIDAgent):
         return super(AngleInterpolationAgent, self).think(perception)
 
     def angle_interpolation(self, keyframes, perception):
+        names, times, keys = keyframes # unpack keyframes
+        
+        #set init time and angles
         if self.init_time == None:
             self.init_time = perception.time
         
         time = perception.time - self.init_time # get time
-        names, times, keys = keyframes # unpack keyframes
                        
         target_joints = {} # dict joint_name : value
         
@@ -100,31 +103,36 @@ class AngleInterpolationAgent(PIDAgent):
                 pre_time = joint_times[timestamp_index-1]
                 next_time = joint_times[timestamp_index]
                 
-            # the time-angle-pairs
+            # create the time-angle-pairs
             p0 = (pre_time, pre_keyframe[0])
             p1 = (pre_time + pre_keyframe[2][1], pre_keyframe[0] + pre_keyframe[2][2])
             p2 = (next_time + next_keyframe[1][1], next_keyframe[0] + next_keyframe[1][2])
-            p3 = (next_time, next_keyframe[0])
-            
+            p3 = (next_time, next_keyframe[0])            
             
             # normalize time
             if pre_time == next_time:
                 i = 1
             else:
                 i = (time-pre_time)/(next_time-pre_time)
-             
-            t = i
-            #t = self.cub_bezier_ang(p0, p1, p2, p3, time)  
                 
-                
+            t = self.cub_bezier_ang(p0, p1, p2, p3, time) 
+            
+            # no solution -> use time linear
+            if t == None:
+                t = i
+                print("t=i")
+            else:
+                print("diff: " + str(np.round(t-i, decimals = 4)))
+                 
+           
             #add joint after evaluation
             target_joints[joint_name] = self.cub_bezier_eval(p0[1],p1[1],p2[1],p3[1],t)
 
         return target_joints
+    
 
     def cub_bezier_eval(self, p0, p1, p2, p3, t):        
-        return (1 - t)**3 * p0 + 3 * (1 - t)**2 * t * p1 + 3 * (1 - t) * t**2 * p2 + t**3 * p3
-    
+        return (1 - t)**3 * p0 + 3 * (1 - t)**2 * t * p1 + 3 * (1 - t) * t**2 * p2 + t**3 * p3    
     
     def cub_bezier_ang(self, p0, p1, p2, p3, time):
         """
@@ -132,20 +140,25 @@ class AngleInterpolationAgent(PIDAgent):
         solves for t
         use np.roots to solve polynom
         """
+        
+        #solve numerically
         f0 = np.round(p0[0] - time, decimals=4)
         f1 = np.round(-3 * p0[0] + 3 * p1[0], decimals=4)
         f2 = np.round(3 * p0[0] - 6 * p1[0] + 3 * p2[0], decimals=4)
         f3 = np.round(- 1 * p0[0] + 3 * p1[0] -3 * p2[0] + p3[0], decimals=4)
-        solve_points = np.roots([f3, f2, f1, f0])
-
-        x = 0
+        solve_points = np.roots([f3, f2, f1, f0])        
+        
+        x = []
         for solved in solve_points:
-            if solved.imag == 0:
+            if abs(solved.imag) < 1e-9 and 0<=solved.real<=1:
                 # only exactly one real solution expected
-                x = float(solved.real)
-                break
-
-        return x
+                x.append(float(solved.real))
+                
+        if len(x) != 1:
+            print("{} time solutions at t={}".format(len(x), time))
+            return None
+        
+        return x[0]
 
 
 if __name__ == '__main__':
