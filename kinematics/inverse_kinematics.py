@@ -11,7 +11,7 @@
 
 
 from forward_kinematics import ForwardKinematicsAgent
-from numpy.matlib import identity, dot, array
+from numpy.matlib import identity, dot, array, matrix
 import numpy
 from math import atan2
 from scipy.optimize import fmin
@@ -116,5 +116,21 @@ if __name__ == '__main__':
     T = identity(4)
     T[-1, 1] = 0.05
     T[-1, 2] = 0.26
-    agent.set_transforms('LLeg', T)
+    agent.set_transforms('RLeg', T)
     agent.run()
+    
+#if __name__ == '__main__':
+#    agent = InverseKinematicsAgent()
+#    # test inverse kinematics
+#    # Snapshot taken from hello animation
+#    LArm = matrix([[ 7.8000e-01,  3.8000e-01,  4.9000e-01,  6.5870e+01],
+#                   [-6.2000e-01,  5.0000e-01,  6.1000e-01,  1.3625e+02],
+#                   [-1.0000e-02, -7.8000e-01,  6.3000e-01,  2.6190e+01],
+#                   [ 0.0000e+00,  0.0000e+00,  0.0000e+00,  1.0000e+00]])
+#    #RArm = matrix([[ 1.6000e-01, -2.7000e-01, -9.5000e-01,  1.8830e+01],
+#    #               [-6.7000e-01,  6.7000e-01, -3.1000e-01, -1.9234e+02],
+#    #               [ 7.2000e-01,  6.9000e-01, -7.0000e-02,  1.4467e+02],
+#    #               [ 0.0000e+00,  0.0000e+00,  0.0000e+00,  1.0000e+00]])
+#    agent.set_transforms('LArm', LArm)
+#    #agent.set_transforms('RArm', RArm)
+#    agent.run()
