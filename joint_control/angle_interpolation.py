@@ -90,6 +90,9 @@ class AngleInterpolationAgent(PIDAgent):
                 # times are the times of last frame
                 pre_time = next_time = joint_times[len(joint_times)-1]
                 
+                # mark keyframes as done
+                self.keyframe_done = True
+                
             else:                            
                 timestamp_index = 0
                 timestamp = joint_times[0]
